@@ -1,4 +1,4 @@
 # assignments
 this repository contains my assignments
 assignment week 3 link:
-http://localhost:8889/notebooks/Downloads/assignment3%20finished.ipynb#
+https://github.com/MikeHagenaars/assignments/blob/master/assignment3%20finished%20(1).ipynb
