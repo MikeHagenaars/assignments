@@ -1,0 +1,891 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Before you turn this problem in, make sure everything runs as expected. First, **restart the kernel** (in the menubar, select Kernel$\\rightarrow$Restart) and then **run all cells** (in the menubar, select Cell$\\rightarrow$Run All).\n",
+    "\n",
+    "Make sure you fill in any place that says `YOUR CODE HERE` or \"YOUR ANSWER HERE\", as well as your name and collaborators below:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 56,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "NAME = \"Mike Hagenaars, #2013589#\"\n",
+    "COLLABORATORS = \"Giel van Amelsfoort, #2006544#\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "---"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Fill in the cell above to provide us with your name and student number, like\n",
+    "\n",
+    "NAME = \"Adam Smith, #student number#\"\n",
+    "\n",
+    "where you replace \"#student number#\" with your ... (very good!)\n",
+    "\n",
+    "and if you are doing this with someone else (not more than one other person):\n",
+    "\n",
+    "COLLABORATORS = \"Karl Marx, #student number#\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "a7ae5c69becf064d614c6c38935eca51",
+     "grade": false,
+     "grade_id": "cell-895e9a7b94992ec9",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "# exam June 7th, 2018\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "bc48d165f54aa364aa34509649fcdef5",
+     "grade": false,
+     "grade_id": "cell-540987818af25557",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "\n",
+    "In the first cell of the notebook, give us your name and student number in the way indicated above. If you do this notebook with --at max.-- one other student, give her/his name and student number as well under \"COLLABORATORS\".\n",
+    "\n",
+    "Fill in the notebook (see below for code cells and text cells that you need to fill in).\n",
+    "\n",
+    "If you look at the menus above (File, Edit, View etc.), there is one called \"Cell\". If you click on this, you can change the \"Cell Type\". Choose \"Code\" when you are typing python or R code. Choose \"Markdown\" when you are typing, well, markdown.\n",
+    "\n",
+    "When you finish the notebook, make sure that you **save it with the output of your code included**. \n",
+    "\n",
+    "Then put it on github, e.g. by dragging it onto github (see instructions below). \n",
+    "\n",
+    "Finally, add a link to your README file with the name of this exam: \"Exam June 7, 2018\".\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "6fad9bed312da1b0097e9c520b18e3fb",
+     "grade": false,
+     "grade_id": "cell-e1cf88cb799f1f43",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "## price effects of mergers\n",
+    "\n",
+    "We consider a merger in this notebook. \n",
+    "\n",
+    "First we calculate the equilibrium with three firms, denoted by 1, 2 and 3. Then firms 2 and 3 merge so that we are left with 2 firms; denoted by 1 and 2.\n",
+    "\n",
+    "We calculate the effects of the merger on the equilibrium price.\n",
+    "\n",
+    "We start by importing the usual libraries."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 89,
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "7bd770ef54db47c3b6c8d0e31f6baef6",
+     "grade": false,
+     "grade_id": "cell-b895769bf40e183a",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "outputs": [],
+   "source": [
+    "import matplotlib.pyplot as plt\n",
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "from scipy import optimize\n",
+    "%matplotlib inline"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The following code helps to calculate the equilibrium for the case with 3 firms. Note that you have seen similar code during the tutorials to calculate the equilibrium with 2 firms.\n",
+    "\n",
+    "We assume that before the merger each firm has constant marginal costs equal to 0.3. We assume a simple linear (inverse) demand curve of the form $p=1-Q$ where $p$ denotes price and $Q$ total output on the market. Total output equals the sum of each firm's output: $Q= q_1 + q_2+q_3$."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "3e30f7ac9d9155ef089b8ca56a0c0436",
+     "grade": false,
+     "grade_id": "cell-f97a25efed556fd2",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "outputs": [],
+   "source": [
+    "c0 = 0.3\n",
+    "vector_c = [c0]*3\n",
+    "\n",
+    "def p(Q):\n",
+    "    return 1 - Q\n",
+    "\n",
+    "def costs(q,c):\n",
+    "    return c*q\n",
+    "\n",
+    "def profits(q,Q_other,c):\n",
+    "    return p(q+Q_other)*q-costs(q,c)\n",
+    "\n",
+    "def reaction(Q_other,c):\n",
+    "    q1 =  optimize.fminbound(lambda x: -profits(x,Q_other,c),0,1,full_output=1)\n",
+    "    return q1[0]\n",
+    "\n",
+    "def fixed_point_three_firms(vector_q,vector_c):\n",
+    "    return [vector_q[0]-reaction(vector_q[1]+vector_q[2],vector_c[0]),\n",
+    "            vector_q[1]-reaction(vector_q[0]+vector_q[2],vector_c[1]),\n",
+    "            vector_q[2]-reaction(vector_q[0]+vector_q[1],vector_c[2])]\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "f6ea3b2416aca7293a5450c45865f242",
+     "grade": false,
+     "grade_id": "cell-83284c4090d6de8c",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "#### a) [0.5 points] Show that total equilibrium output equals  0.525. Derive the equilibrium price and Herfindahl index; denote these by `P0` and `H0` resp."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "metadata": {
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "a06d73c35395adb00480733b458cb4a5",
+     "grade": true,
+     "grade_id": "cell-3b8ee172d9950128",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([0.175, 0.175, 0.175])"
+      ]
+     },
+     "execution_count": 91,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "initial_guess= [0,0,0]  #first part of the function here we find the values of q1, q2 and q3.\n",
+    "\n",
+    "optimize.fsolve(lambda q: fixed_point_three_firms(q,[0.3,0.3,0.3]), initial_guess)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 92,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "0.5249999999999999\n",
+      "0.4750000000000001\n",
+      "0.33333333333333337\n"
+     ]
+    }
+   ],
+   "source": [
+    "Q = q1 + q2 + q3       #Here we add up q1, q2 and q3 to creat variable Q.\n",
+    "print(Q)\n",
+    "\n",
+    "P0 = 1 - Q             #With our Q we can tell what P0 is.\n",
+    "print(P0)\n",
+    "\n",
+    "H0 = (q1/Q)**2 + (q2/Q)**2 + (q3/Q)**2    #This is the formula for the Herfindahl Index. We put in our variables.\n",
+    "print(H0)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "87b3b3e0e2d645c280e279312e489dc4",
+     "grade": false,
+     "grade_id": "cell-4b33762aa4a601fe",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "#### b) [0.5 point] Define a function `fixed_point_two_firms` with the same structure as the function `fixed_point_three_firms` above, except that it derives the equilibrium output levels for a duopoly (two firms). Test this function by showing that each of the two firms produces 0.3333 in case both firms have zero costs."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "metadata": {
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "024a1519155d681b57c85292df535a65",
+     "grade": true,
+     "grade_id": "cell-5ee215676b91f504",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([0.33333333, 0.33333333])"
+      ]
+     },
+     "execution_count": 93,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "c0 = 0.0                                 #We had to change the costs to 0.0 instead of 0.3\n",
+    "vector_c = [c0*2]\n",
+    "\n",
+    "def p(Q):                                #Here we substract Q again to find p as in excercise 1a\n",
+    "    return 1 - Q\n",
+    "\n",
+    "def fixed_point_two_firms(vector_q,vector_c): #We changed fixed_point_three_firms into fixed_point_two_firms and adjusted the return section.\n",
+    "    return [vector_q[0]-reaction(vector_q[1],vector_c[0]),\n",
+    "            vector_q[1]-reaction(vector_q[0],vector_c[1])]\n",
+    "\n",
+    "initial_guess= [0.0,0.0]                 #Initial guess is set to [0.0,0.0] so the array contains the values of output when two firms have zero costs.\n",
+    "optimize.fsolve(lambda q: fixed_point_two_firms(q,[0.0,0.0]), initial_guess)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "5291fc8716e367572fde17ebe5844d2f",
+     "grade": false,
+     "grade_id": "cell-c2fada02efd7b197",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "The Dutch competition authority, ACM, is asked to evaluate the effects of a merger between firms 2 and 3. Firms 2 and 3 claim that by merging they can reduce their constant marginal costs. But it is not clear by how much they will reduce their costs.\n",
+    "\n",
+    "The ACM assumes that the marginal cost level of the merged firm is uniformly distributed between 0 and the current marginal cost level `c0`. The merger will not affect the marginal cost level of firm 1 who does not merge. Firm 1's cost level remains `c0`.\n",
+    "\n",
+    "The next cell generates a vector of cost levels for the merged firm, denoted `c_after_merger`. Evaluate \"c_after_merger\" in a separate cell if you do not understand the command that defines it.\n",
+    "\n",
+    "Then it calculates the equilibrium output levels for (the non-merging) firm 1 and (the merged) firm 2.\n",
+    "\n",
+    "Note that you need to specify `initial_guess`.\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "11299317cd53e31de9900700999b0324",
+     "grade": false,
+     "grade_id": "cell-ce91ab3e3225c57d",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "outputs": [],
+   "source": [
+    "c_after_merger = np.random.uniform(0,c0,size = 100)\n",
+    "\n",
+    "q1_after_merger = [optimize.fsolve(lambda q: fixed_point_two_firms(q,[c0,c]), initial_guess)[0] for c in c_after_merger]\n",
+    "q2_after_merger = [optimize.fsolve(lambda q: fixed_point_two_firms(q,[c0,c]), initial_guess)[1] for c in c_after_merger]\n",
+    "\n",
+    "\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 95,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n",
+      " 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n",
+      " 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n",
+      " 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.\n",
+      " 0. 0. 0. 0.]\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(c_after_merger)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "2b518306d6ff20ee42d0bc3085333095",
+     "grade": false,
+     "grade_id": "cell-0acc18b4f07a09f4",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "#### c) [0.5 points] Create a dataframe called `df_after_merger` with three columns: `c_merged_firm`, `output_non_merging_firm`, `output_merged_firm` containing resp. the cost level of the merged firm, the output level of firm 1 and the output level of firm 2."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 96,
+   "metadata": {
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "f4fc6a3bdef91fa3f656ccd3290c9f54",
+     "grade": true,
+     "grade_id": "cell-f3eacda828774f2d",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "    c_merged_firm  output_merged_firm  output_non_merging_firm\n",
+      "0        0.188266            0.307823                 0.196089\n",
+      "1        0.249411            0.267059                 0.216470\n",
+      "2        0.076546            0.382303                 0.158849\n",
+      "3        0.105772            0.362818                 0.168591\n",
+      "4        0.015251            0.423166                 0.138417\n",
+      "5        0.064887            0.390075                 0.154962\n",
+      "6        0.144571            0.336953                 0.181524\n",
+      "7        0.199595            0.300270                 0.199865\n",
+      "8        0.294043            0.237305                 0.231348\n",
+      "9        0.043846            0.404103                 0.147949\n",
+      "10       0.261712            0.258859                 0.220571\n",
+      "11       0.110624            0.359584                 0.170208\n",
+      "12       0.143236            0.337843                 0.181079\n",
+      "13       0.081981            0.378679                 0.160660\n",
+      "14       0.262616            0.258256                 0.220872\n",
+      "15       0.115704            0.356197                 0.171901\n",
+      "16       0.218572            0.287618                 0.206191\n",
+      "17       0.218636            0.287576                 0.206212\n",
+      "18       0.022658            0.418228                 0.140886\n",
+      "19       0.233585            0.277610                 0.211195\n",
+      "20       0.267164            0.255224                 0.222388\n",
+      "21       0.237871            0.274753                 0.212624\n",
+      "22       0.022757            0.418162                 0.140919\n",
+      "23       0.154870            0.330086                 0.184957\n",
+      "24       0.261702            0.258865                 0.220567\n",
+      "25       0.061521            0.392319                 0.153840\n",
+      "26       0.073626            0.384250                 0.157875\n",
+      "27       0.060591            0.392939                 0.153530\n",
+      "28       0.279202            0.247198                 0.226401\n",
+      "29       0.207783            0.294811                 0.202594\n",
+      "..            ...                 ...                      ...\n",
+      "70       0.186171            0.309219                 0.195390\n",
+      "71       0.156180            0.329214                 0.185393\n",
+      "72       0.222519            0.284988                 0.207506\n",
+      "73       0.207385            0.295077                 0.202462\n",
+      "74       0.069164            0.387224                 0.156388\n",
+      "75       0.176814            0.315458                 0.192271\n",
+      "76       0.199242            0.300506                 0.199747\n",
+      "77       0.193806            0.304129                 0.197935\n",
+      "78       0.008899            0.427401                 0.136300\n",
+      "79       0.250108            0.266595                 0.216703\n",
+      "80       0.203645            0.297570                 0.201215\n",
+      "81       0.167279            0.321814                 0.189093\n",
+      "82       0.225773            0.282818                 0.208591\n",
+      "83       0.164871            0.323420                 0.188290\n",
+      "84       0.140760            0.339494                 0.180253\n",
+      "85       0.104613            0.363592                 0.168204\n",
+      "86       0.192382            0.305079                 0.197461\n",
+      "87       0.283140            0.244573                 0.227713\n",
+      "88       0.088261            0.374493                 0.162754\n",
+      "89       0.032941            0.411373                 0.144314\n",
+      "90       0.267602            0.254932                 0.222534\n",
+      "91       0.174159            0.317227                 0.191386\n",
+      "92       0.240407            0.273062                 0.213469\n",
+      "93       0.162832            0.324779                 0.187611\n",
+      "94       0.294022            0.237319                 0.231341\n",
+      "95       0.217168            0.288555                 0.205723\n",
+      "96       0.206343            0.295771                 0.202114\n",
+      "97       0.279369            0.247087                 0.226456\n",
+      "98       0.038284            0.407810                 0.146095\n",
+      "99       0.215571            0.289620                 0.205190\n",
+      "\n",
+      "[100 rows x 3 columns]\n"
+     ]
+    }
+   ],
+   "source": [
+    "c0=0.3                                    #sets costs back to 0.3, makes data run 100 times (random) and sets initial_guess\n",
+    "c_after_merger = np.random.uniform(0,c0,size = 100)\n",
+    "initial_guess = [0,3]\n",
+    "\n",
+    "q1_after_merger = [optimize.fsolve(lambda q: fixed_point_two_firms(q,[c0,c]), initial_guess)[0] for c in c_after_merger] #Tells what to do with data with a certain output.\n",
+    "q2_after_merger = [optimize.fsolve(lambda q: fixed_point_two_firms(q,[c0,c]), initial_guess)[1] for c in c_after_merger]\n",
+    "    \n",
+    "c_merged_firm = c_after_merger           #sets our different required variables\n",
+    "output_non_merging_firm = q1_after_merger\n",
+    "output_merged_firm = q2_after_merger\n",
+    "\n",
+    "data = {'c_merged_firm':c_merged_firm,'output_non_merging_firm':output_non_merging_firm,'output_merged_firm':output_merged_firm}\n",
+    "df_after_merger = pd.DataFrame(data)     #Creates a dataframe and prints the data into the dataframe\n",
+    "print(df_after_merger)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "a5bf4171960844da9c57375d83b6eedf",
+     "grade": false,
+     "grade_id": "cell-7ad058be42e19df8",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "#### d) [0.5 points] Add three columns to the dataframe with resp. total equilibrium output on the market, `Q`, equilibrium price, `P` and the Herfindahl index, `H`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 97,
+   "metadata": {
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "ab6179623b39a6ae634abea45326e4ab",
+     "grade": true,
+     "grade_id": "cell-9c39b11747803ca1",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>c_merged_firm</th>\n",
+       "      <th>output_merged_firm</th>\n",
+       "      <th>output_non_merging_firm</th>\n",
+       "      <th>Q</th>\n",
+       "      <th>P</th>\n",
+       "      <th>H</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.188266</td>\n",
+       "      <td>0.307823</td>\n",
+       "      <td>0.196089</td>\n",
+       "      <td>0.503911</td>\n",
+       "      <td>0.496089</td>\n",
+       "      <td>0.524583</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.249411</td>\n",
+       "      <td>0.267059</td>\n",
+       "      <td>0.216470</td>\n",
+       "      <td>0.483530</td>\n",
+       "      <td>0.516470</td>\n",
+       "      <td>0.505473</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.076546</td>\n",
+       "      <td>0.382303</td>\n",
+       "      <td>0.158849</td>\n",
+       "      <td>0.541151</td>\n",
+       "      <td>0.458849</td>\n",
+       "      <td>0.585253</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0.105772</td>\n",
+       "      <td>0.362818</td>\n",
+       "      <td>0.168591</td>\n",
+       "      <td>0.531409</td>\n",
+       "      <td>0.468591</td>\n",
+       "      <td>0.566793</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.015251</td>\n",
+       "      <td>0.423166</td>\n",
+       "      <td>0.138417</td>\n",
+       "      <td>0.561583</td>\n",
+       "      <td>0.438417</td>\n",
+       "      <td>0.628549</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "   c_merged_firm  output_merged_firm  output_non_merging_firm         Q  \\\n",
+       "0       0.188266            0.307823                 0.196089  0.503911   \n",
+       "1       0.249411            0.267059                 0.216470  0.483530   \n",
+       "2       0.076546            0.382303                 0.158849  0.541151   \n",
+       "3       0.105772            0.362818                 0.168591  0.531409   \n",
+       "4       0.015251            0.423166                 0.138417  0.561583   \n",
+       "\n",
+       "          P         H  \n",
+       "0  0.496089  0.524583  \n",
+       "1  0.516470  0.505473  \n",
+       "2  0.458849  0.585253  \n",
+       "3  0.468591  0.566793  \n",
+       "4  0.438417  0.628549  "
+      ]
+     },
+     "execution_count": 97,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "df_after_merger[\"Q\"] = df_after_merger['output_non_merging_firm'] + df_after_merger['output_merged_firm'] #Q is formed by adding up the outputs of firm 1 and the merged firms.\n",
+    "df_after_merger[\"P\"] = 1 - df_after_merger[\"Q\"]                                                           #P is formed by substracting Q from 1 as described at the start of this test.\n",
+    "df_after_merger[\"H\"] = (df_after_merger['output_non_merging_firm']/df_after_merger[\"Q\"])**2 + (df_after_merger['output_merged_firm']/df_after_merger[\"Q\"])**2 #H is formed bij adding up the Herfindahl Index of firm 1 to the Herfindahl Index of the merged firms. \n",
+    "\n",
+    "df_after_merger.head()          #Shows us the head of our dataframe."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### e) [0.5 points] Make a histogram of the equilibrium price `P` after the merger. Also indicate in the histogram the equilibrium price before the merger `P0`. Label the horizontal axis with $P$.\n",
+    "\n",
+    "[hint: you may want to use matplotlib's `hist`, `vlines` and `legend` to make this graph (e.g use google to find these functions); but feel free to use something else]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 98,
+   "metadata": {
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "b103cd98545261b20f937f4b9db67f68",
+     "grade": true,
+     "grade_id": "cell-f9193bf8e71f1a9a",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<function matplotlib.pyplot.show>"
+      ]
+     },
+     "execution_count": 98,
+     "metadata": {},
+     "output_type": "execute_result"
+    },
+    {
+     "data": {
+      "image/png": "iVBORw0KGgoAAAANSUhEUgAAAYIAAAEWCAYAAABrDZDcAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAADl0RVh0U29mdHdhcmUAbWF0cGxvdGxpYiB2ZXJzaW9uIDIuMS4yLCBodHRwOi8vbWF0cGxvdGxpYi5vcmcvNQv5yAAAFJBJREFUeJzt3X20ZXV93/H3hxmsPBlALokCNwNKaJWFQK6aRpusijTEKEhrDYgt+MC0q0nUFCNorKJZSauhYhKzasegECGaiA/xKRGwRfIAmgF5UjAoUECsDI4p8qAIfPvH2WOu12Huuffcffad+b1fa511995nn/37/ubC+dy9f/v8TqoKSVK7dhq6AEnSsAwCSWqcQSBJjTMIJKlxBoEkNc4gkKTGGQTaYSSZTXJvkjXd+qVJXtktn5Tkonn7VpInL+HYP/T61SjJG5L80dB1aPsTP0egISS5Ffhx4OF5m8+tql9dwTYuBc6vqh95c0xSwMFV9dWVam+lJTkXeAnwYPe4Evi1qrpxyLq04/GMQEN6QVXtPu+xYiGwkpKsHbD5t1fV7sD+wF3AuVvbaeAatZ0zCLSqJFmT5Kwkdye5OcmvdJdx1nbP35rkufP2PzPJ+d3yuvn7LjjuKUn+esHm53Vt3J3kd5PsNG/fv0lydpLNwJnzX7+1dhZchpr/+n/o2vjZbvvtSe5KcvJS/l2q6n7gT4BD5/X7wiTnJ7kHOGX+v0W3z7OT/G1Xw+1JTum2/5Pu3/i2JN9M8u4kuyylHu1YDAKtNqcCzweOAOaAF/XY1vFdG0cCxwEvn/fcM4GbgX2B317GsZ8JXAs8ntEb+AeBpwNPBl4KvCvJ7uMerNv3JOCL8zYfB1wI7AlcsGD/WeAvgD8AZoDDgau7p98G/FS37cnAfsCbltQ77VAMAg3pY91fq1sepwIvBt5ZVbdX1Wbgv/bY/tuqanNV3Qa8Ezhx3nN3VtUfVNVDVfXAMo59S1W9r6oeBv4UOAB4a1V9r6ouYnTNf5zB6tcm+Qfgq8DuwCnznru8qj5WVY9spcaTgEuq6gNV9f2q+lZVXZ0kjML217u+fwf4HeCEZfRROwivK2pIL6yqS+ZvSHIacPu8Tf+nx/YXtvPER3luOb45b/kBgKpauG2cM4KzquqNj/Lctmo8APjaVrbPALsCV44yAYAAa8aoRTsozwi02nyD0ZvYFrMLnr+P0RvZFj8xQVsL27lz3vq2bqe7r/u5UnUs17ZqvB140la2380ohJ5aVXt2jx/rBqTVKINAq82fAa9Ksn+SvYAzFjx/NXBCkp2TTDqG8BtJ9kpyAPBqRpdwFlVVm4CvAy/tBrdfztbfdId0AfDcJC9OsjbJ45McXlWPAO8Bzk6yL0CS/ZL8wqDValAGgYb0ie4DYFseH2X0JvUZ4BrgKuAjC17zXxi96X4beAujgdjl+nNG9+ZfDXwKOGcJrz0V+A3gW8BTgb+doI4V1417PA84DdjMqI9P654+ndGYwxXdHUeXAIcMUadWBz9QplUtyTrgFmDnqnpo2GqkHZNnBJLUOINAGlCSLy24PLblcdLQtakdXhqSpMZ5RiBJjdsuPlC2zz771Lp164YuQ5K2K1deeeXdVTWz2H7bRRCsW7eOjRs3Dl2GJG1Xkoz1yXwvDUlS4wwCSWqcQSBJjTMIJKlxBoEkNc4gkKTG9RYESd7bfTfr9Vt57rXdd77u01f7kqTx9HlGcC5wzMKN3dzvRwO39di2JGlMvQVBVV3GaB70hc4GXse2v11JkjQlU/1kcZJjga9X1TXzvi/10fZdD6wHmJ1d+G2Fknq1yP+fS+bklqva1AaLk+wK/CbwpnH2r6oNVTVXVXMzM4tOlSFJWqZp3jX0JOBA4JoktwL7A1clGeJLvyVJnaldGqqq64B9t6x3YTBXVXdPqwZJ0o/q8/bRDwCXA4ckuSPJK/pqS5K0fL2dEVTViYs8v66vtiVJ4/OTxZLUOINAkhpnEEhS4wwCSWqcQSBJjTMIJKlxBoEkNc4gkKTGGQSS1DiDQJIaZxBIUuMMAklqnEEgSY0zCCSpcQaBJDXOIJCkxhkEktQ4g0CSGmcQSFLjDAJJalxvQZDkvUnuSnL9vG2/m+TGJNcm+WiSPftqX5I0nj7PCM4Fjlmw7WLg0Ko6DPh74PU9ti9JGkNvQVBVlwGbF2y7qKoe6lavAPbvq31J0njWDtj2y4E/fbQnk6wH1gPMzs5OqyZJfUhW9nhVK3u8xg0yWJzkN4GHgAsebZ+q2lBVc1U1NzMzM73iJKkxUz8jSHIy8HzgqCpjXZKGNtUgSHIMcDrw81V1/zTbliRtXZ+3j34AuBw4JMkdSV4BvAvYA7g4ydVJ3t1X+5Kk8fR2RlBVJ25l8zl9tSdJWh4/WSxJjTMIJKlxBoEkNc4gkKTGGQSS1DiDQJIaZxBIUuMMAklqnEEgSY0zCCSpcQaBJDXOIJCkxhkEktQ4g0CSGmcQSFLjDAJJapxBIEmNMwgkqXEGgSQ1ziCQpMYZBJLUuN6CIMl7k9yV5Pp52/ZOcnGSm7qfe/XVviRpPH2eEZwLHLNg2xnAZ6vqYOCz3bokaUC9BUFVXQZsXrD5OOC8bvk84IV9tS9JGs+0xwh+vKq+AdD93PfRdkyyPsnGJBs3bdo0tQIlqTWrdrC4qjZU1VxVzc3MzAxdjiTtsKYdBN9M8gSA7uddU25fkrTAtIPg48DJ3fLJwJ9PuX1J0gJ93j76AeBy4JAkdyR5BfDfgKOT3AQc3a1Lkga0tq8DV9WJj/LUUX21KUlaulU7WCxJmg6DQJIaZxBIUuMMAklqnEEgSY0zCCSpcQaBJDXOIJCkxhkEktS4sYIgyaF9FyJJGsa4ZwTvTvKFJP8pyZ69ViRJmqqxgqCqng2cBBwAbEzyJ0mO7rUySdJUjD1GUFU3AW8ETgd+Hvj9JDcm+dd9FSdJ6t+4YwSHJTkbuAF4DvCCqvpn3fLZPdYnSerZuNNQvwt4D/CGqnpgy8aqujPJG3upTJI0FeMGwfOAB6rqYYAkOwGPrar7q+r9vVUnSerduGMElwC7zFvftdsmSdrOjRsEj62qe7esdMu79lOSJGmaxg2C+5IcuWUlyU8DD2xjf0nSdmLcMYLXAB9Kcme3/gTgl/spSZI0TWMFQVX9XZJ/ChwCBLixqr6/3EaT/DrwSqCA64CXVdV3l3s8SdLyLWXSuacDhwFHACcm+ffLaTDJfsCrgLmqOhRYA5ywnGNJkiY31hlBkvcDTwKuBh7uNhfwxxO0u0uS7zMadL5zkf0lST0Zd4xgDnhKVdWkDVbV15OcBdzGaMD5oqq6aOF+SdYD6wFmZ2cnbVaSpiNZ2eNN/ra7qHEvDV0P/MRKNJhkL+A44EDgicBuSV66cL+q2lBVc1U1NzMzsxJNS5K2Ytwzgn2ALyf5AvC9LRur6thltPlc4Jaq2gSQ5CPAzwLnL+NYkqQJjRsEZ65gm7cBP5NkV0aXho4CNq7g8SVJSzDu7aOfS/KTwMFVdUn3Jr5mOQ1W1eeTXAhcBTwEfBHYsJxjSZImN+5dQ6cyGrjdm9HdQ/sB72b01/ySVdWbgTcv57WSpJU17mDxrwDPAu6BH3xJzb59FSVJmp5xg+B7VfXglpUkaxl9jkCStJ0bNwg+l+QNjD4EdjTwIeAT/ZUlSZqWcYPgDGATo3mB/gPwaUbfXyxJ2s6Ne9fQI4y+qvI9/ZYjSZq2ce8auoWtjAlU1UErXpEkaaqWMtfQFo8F/i2jW0klSdu5scYIqupb8x5fr6p3As/puTZJ0hSMe2noyHmrOzE6Q9ijl4okSVM17qWh/z5v+SHgVuDFK16NpmM7nCZX+iEr/d9w48a9a+hf9l2IJGkY414a+s/ber6q3rEy5UiSpm0pdw09Hfh4t/4C4DLg9j6KkiRNz1K+mObIqvoOQJIzgQ9V1Sv7KkySNB3jTjExCzw4b/1BYN2KVyNJmrpxzwjeD3whyUcZfcL4eOCPe6tKkjQ149419NtJ/gL4F92ml1XVF/srS5I0LeNeGgLYFbinqn4PuCPJgT3VJEmaorGCIMmbgdOB13ebdgbO76soSdL0jHtGcDxwLHAfQFXdiVNMSNIOYdwgeLCqim4q6iS79VeSJGmaxg2CP0vyP4E9k5wKXMIEX1KTZM8kFya5MckNSf75co8lSZrMuHcNndV9V/E9wCHAm6rq4gna/T3gL6vqRUkew2ggWpI0gEWDIMka4DNV9Vxgkjf/Lcd7HPBzwCkAVfUgP/xhNUnSFC0aBFX1cJL7k/xYVf2/FWjzIGAT8L4kTwOuBF5dVffN3ynJemA9wOzs7Ao0uwinZl6+1Twl8Gr+Pazmfzc1Zdwxgu8C1yU5J8nvb3kss821wJHA/6iqIxjdiXTGwp2qakNVzVXV3MzMzDKbkiQtZtwpJj7VPVbCHcAdVfX5bv1CthIEkqTp2GYQJJmtqtuq6ryVarCq/m+S25McUlVfAY4CvrxSx5ckLc1il4Y+tmUhyYdXsN1fAy5Ici1wOPA7K3hsSdISLHZpaP5o1kEr1WhVXc3oy24kSQNb7IygHmVZkrSDWOyM4GlJ7mF0ZrBLt0y3XlX1uF6rkyT1bptBUFVrplWIJGkYS/k+AknSDsggkKTGGQSS1DiDQJIaZxBIUuMMAklq3LiTzkkCp47WDskzAklqnEEgSY0zCCSpcQaBJDXOIJCkxhkEktQ4g0CSGmcQSFLjDAJJapxBIEmNGywIkqxJ8sUknxyqBknSsGcErwZuGLB9SRIDBUGS/YFfAv5oiPYlSf9oqDOCdwKvAx4ZqH1JUmfqQZDk+cBdVXXlIvutT7IxycZNmzZNqboVlKzcQ8u3kr8HfxfaQQ1xRvAs4NgktwIfBJ6T5PyFO1XVhqqaq6q5mZmZadcoSc2YehBU1eurav+qWgecAPyvqnrptOuQJI34OQJJatygX1VZVZcClw5ZgyS1zjMCSWqcQSBJjTMIJKlxBoEkNc4gkKTGGQSS1DiDQJIaZxBIUuMMAklqnEEgSY0zCCSpcQaBJDXOIJCkxhkEktQ4g0CSGmcQSFLjDAJJapxBIEmNMwgkqXEGgSQ1ziCQpMZNPQiSHJDkfye5IcmXkrx62jVIkv7R2gHafAg4raquSrIHcGWSi6vqywPUIknNm/oZQVV9o6qu6pa/A9wA7DftOiRJI0OcEfxAknXAEcDnt/LcemA9wOzs7FTrWnWSoSuQtAMbbLA4ye7Ah4HXVNU9C5+vqg1VNVdVczMzM9MvUJIaMUgQJNmZUQhcUFUfGaIGSdLIEHcNBTgHuKGq3jHt9iVJP2yIM4JnAf8OeE6Sq7vH8waoQ5LEAIPFVfXXgKOfkrRK+MliSWqcQSBJjTMIJKlxBoEkNc4gkKTGGQSS1DiDQJIaZxBIUuMMAklq3KDTUEuTWHf6Jwdp99a3PX+QdqW+eEYgSY0zCCSpcQaBJDXOIJCkxhkEktQ4g0CSGmcQSFLjDAJJapxBIEmNMwgkqXEGgSQ1bpAgSHJMkq8k+WqSM4aoQZI0MvUgSLIG+EPgF4GnACcmecq065AkjQxxRvAM4KtVdXNVPQh8EDhugDokSQwzDfV+wO3z1u8AnrlwpyTrgfXd6r1JvjKF2lbSPsDdQxcxJcP0daDpoOPvdke1OvuaTPLqnxxnpyGCYGu9qh/ZULUB2NB/Of1IsrGq5oauYxpa6iu01V/72oYhLg3dARwwb31/4M4B6pAkMUwQ/B1wcJIDkzwGOAH4+AB1SJIY4NJQVT2U5FeBzwBrgPdW1ZemXccUbLeXtZahpb5CW/21rw1I1Y9cnpckNcRPFktS4wwCSWqcQbBE406PkeRFSSrJ3ILts0nuTfLa/qud3CT9TXJYksuTfCnJdUkeO52ql2e5fU2yc5Lzuj7ekOT106t6+Rbrb5JTkmxKcnX3eOW8505OclP3OHm6lS/dcvua5PB5/w1fm+SXp1/9FFSVjzEfjAa3vwYcBDwGuAZ4ylb22wO4DLgCmFvw3IeBDwGvHbo/ffaX0Y0I1wJP69YfD6wZuk899fUlwAe75V2BW4F1Q/dp0v4CpwDv2spr9wZu7n7u1S3vNXSfeurrTwEHd8tPBL4B7Dl0n1b64RnB0ow7PcZvAW8Hvjt/Y5IXMvqfZnu5S2qS/v4r4Nqqugagqr5VVQ/3XfAEJulrAbslWQvsAjwI3NNzvZOaZKqXXwAurqrNVfVt4GLgmJ7qXAnL7mtV/X1V3dQt3wncBcz0VulADIKl2dr0GPvN3yHJEcABVfXJBdt3A04H3tJ3kSto2f1l9JdUJflMkquSvK7fUic2SV8vBO5j9NfibcBZVbW5x1pXwqL97fyb7pLIhUm2fBB03NeuFpP09QeSPIPRGcXX+ilzOAbB0mxzeowkOwFnA6dtZb+3AGdX1b091daHSfq7Fng2cFL38/gkR/VR5AqZpK/PAB5mdOngQOC0JAf1UeQKGmeql08wusR1GHAJcN4SXruaTNLX0QGSJwDvB15WVY/0UuWADIKlWWx6jD2AQ4FLk9wK/Azw8W5Q8ZnA27vtrwHe0H2wbjWbpL93AJ+rqrur6n7g08CRU6l6eSbp60uAv6yq71fVXcDfAKt9zppFp3rpLud9r1t9D/DT4752lZmkryR5HPAp4I1VdUXPtQ5j6EGK7enB6K/cmxn91bdl0Omp29j/UhYMFnfbz2T7GCxedn8ZDSJexWjwdC2jv7J+aeg+9dTX04H3MfrLczfgy8BhQ/dp0v4CT5i3fDxwRbe8N3BL9zveq1vee+g+9dTXxwCfBV4zdD/6fAwx++h2qx5leowkbwU2VtUONWfSJP2tqm8neQejuaUK+HRVfWoqhS/DhL/bP2QUBNczCoP3VdW1vRc9gTH7+6okxwIPAZsZ3VlDVW1O8luMfrcAb61VPCYySV+BFwM/Bzw+yZZtp1TV1dPsQ9+cYkKSGucYgSQ1ziCQpMYZBJLUOINAkhpnEEhS47x9VFqGJA8D1zH6f+gG4OQafXBO2u54RiAtzwNVdXhVHcpokrn/OHRB0nIZBNLk/gp48tBFSMtlEEgT6Kae/kVGl4mk7ZJjBNLy7JJkyzQDfwWcM2Qx0iScYkJahiT3VtXuQ9chrQQvDUlS4wwCSWqcl4YkqXGeEUhS4wwCSWqcQSBJjTMIJKlxBoEkNc4gkKTGGQSS1Lj/DwzdXXsOfXvBAAAAAElFTkSuQmCC\n",
+      "text/plain": [
+       "<matplotlib.figure.Figure at 0x253ef0cde10>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "plt.hist(df_after_merger['P'], bins=15, color='red')     #describes the characteristics of the histogram.\n",
+    "plt.hist(P0, range=(0.43,0.53))                          #Sets limit to the x-asis.\n",
+    "plt.title('Equilibrium_Price')                           #Titles the histogram.\n",
+    "plt.xlabel('P')                                          #Tells what data should be put on the x-asis.\n",
+    "plt.ylabel('Frequency')                                  #Tells what data should be put on the y-asis.\n",
+    "plt.show                                                 #Draws the histogram."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### f) [0.5 points] Explain why sometimes the equilibrium price after the merger exceeds the equilibrium price before the merger and sometimes it is lower than the pre-merger price. [hint: there is a trade off between two effects, depending on which effect dominates, equilibrium price increases or decreases after the merger]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "dd9fc721b7cf7f66587e93cbfb758034",
+     "grade": true,
+     "grade_id": "cell-7a1f367cd2854156",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "source": [
+    "The equilibrium price is affected by the lowest amount of marginal costs. So when the marginal costs of the merged firms are higher than c0 (=the marginal costs of firm 1) than the equilibrium price exceeds to the old situation. When the marginal costs of the merged firms are lower than c0 the equilibrium price will exceed to a lower amount than in the old equilibrium as shown in excercise 1e."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "e1e41dbf14c605bf91cdc78f70eada99",
+     "grade": false,
+     "grade_id": "cell-06ed6044f8938a45",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "#### g) [0.5 points] Make a graph with the Herfindahl index on the horizontal axis and the equilibrium price on the vertical axis. This is straightforward for $(H,P)$ after the merger as both values are in the dataframe. Add in another color, the pre-merger combination `(H0,P0)` that we calculated above."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 99,
+   "metadata": {
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "51cfaacbaf533e85d9794bc74712afd5",
+     "grade": true,
+     "grade_id": "cell-d647464d04870b73",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "image/png": "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\n",
+      "text/plain": [
+       "<matplotlib.figure.Figure at 0x253ef144080>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "plt.scatter(df_after_merger['H'], df_after_merger['P'], color='r') #We used plt.scatter instead of plt.plot because this is more clear.\n",
+    "plt.xlabel('Herfindahl Index')                                     #Describes which data is set on the x-asis, also gives the x-asis a name.\n",
+    "plt.ylabel('equilibrium price')                                    #Describes which data is set on the y-asis, also gives the y-asis a name.\n",
+    "plt.show()                                                         #shows the graph."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "deletable": false,
+    "editable": false,
+    "nbgrader": {
+     "checksum": "11b6609131b1c25886f2c6cafe0f7a59",
+     "grade": false,
+     "grade_id": "cell-5c5e5776a7c135a2",
+     "locked": true,
+     "schema_version": 1,
+     "solution": false
+    }
+   },
+   "source": [
+    "#### h) [0.5 points] Use the graph under g) to discuss the relation between the Herfindahl index and the equilibrium price. To illustrate, some people think that lower values of the Herfindahl index are associated with more competitive outcome. Would you agree with this?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "collapsed": true,
+    "deletable": false,
+    "nbgrader": {
+     "checksum": "3d396887dde3b00420c623b9f4ea8ed2",
+     "grade": true,
+     "grade_id": "cell-cbd89d483b23a953",
+     "locked": false,
+     "points": 0.5,
+     "schema_version": 1,
+     "solution": true
+    }
+   },
+   "source": [
+    "The higher the Herfindahl Index is the lower the equilibrium price. We agree with the statement because, when there is an lower Herfindahl Index all firms have a smaller market share which means there are more firms in the same market. More firms in the same market means that there is more competition."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Github\n",
+    "\n",
+    "After you have finished, we need to upload this notebook on github. Make sure that you upload the file on the github page of each collaborator."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Instructions on how to upload this on github can be found [on this page](http://janboone.github.io/programming-for-economists/github.html). This page has two screencasts: one shows how to drag the notebook onto your github page, the other shows how you can use the command line to upload your notebook.\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Remember to update the README file in your repository to include a link to this notebook on github.\n",
+    "\n",
+    "\n",
+    "The links that you should post start with “github.com/” and are NOT of the form “http://localhost”. Make sure you test your links after uploading."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "anaconda-cloud": {},
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.4"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 1
+}
